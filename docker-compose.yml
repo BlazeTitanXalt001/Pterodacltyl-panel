@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: odoo
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '16'
+          memory: 256G
+        reservations:
+          cpus: '8'
+          memory: 128G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  odoo:
+    image: odoo:17
+    environment:
+      HOST: postgres
+      USER: odoo
+      PASSWORD: odoo_password
+      DB_PORT: 5432
+    volumes:
+      - odoo_data:/var/lib/odoo
+      - ./addons:/mnt/extra-addons
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '256'
+          memory: 1700G
+        reservations:
+          cpus: '128'
+          memory: 850G
+    command: odoo -d odoo --db_user=odoo --db_password=odoo_password --db_host=postgres
+
+volumes:
+  postgres_data:
+  odoo_data:
