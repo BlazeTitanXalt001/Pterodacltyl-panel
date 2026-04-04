@@ -14,16 +14,17 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '16'
-          memory: 256G
+          cpus: '1'
+          memory: 1G
         reservations:
-          cpus: '8'
-          memory: 128G
+          cpus: '0.5'
+          memory: 512M
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U odoo"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   odoo:
     image: odoo:17
@@ -44,12 +45,18 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '256'
-          memory: 1700G
+          cpus: '2'
+          memory: 4G
         reservations:
-          cpus: '128'
-          memory: 850G
-    command: odoo -d odoo --db_user=odoo --db_password=odoo_password --db_host=postgres
+          cpus: '1'
+          memory: 2G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: odoo -d odoo -i base --db_user=odoo --db_password=odoo_password --db_host=postgres
 
 volumes:
   postgres_data:
