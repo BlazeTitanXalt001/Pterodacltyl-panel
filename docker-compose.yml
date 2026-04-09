@@ -11,20 +11,16 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U odoo"]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64g
 
   odoo:
     image: odoo:17
@@ -42,14 +38,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 4G
-        reservations:
-          cpus: '1'
-          memory: 2G
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8069"]
@@ -57,6 +45,10 @@ services:
       timeout: 10s
       retries: 3
     command: odoo -d odoo -i base --db_user=odoo --db_password=odoo_password --db_host=postgres
+    deploy:
+      resources:
+        limits:
+          memory: 64g
 
 volumes:
   postgres_data:
